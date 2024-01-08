@@ -4,7 +4,7 @@ COPY . .
 RUN go fmt && CGO_ENABLED=0 go build .
 
 FROM reg.klab.sh/base/abi:edge as runner
-COPY --from=builder /go/src/app/timed /timed
+COPY --from=builder /go/src/app/klab-site /klab-site
 RUN chown appuser:appgroup /klab-site && chmod +x /klab-site
 USER appuser
 CMD ["/klab-site"]
