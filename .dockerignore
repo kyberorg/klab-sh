@@ -1,0 +1,9 @@
+# Ignore everything by default
+**
+# Adding go.mod
+!go.mod 
+# Adding server.go
+!server.go
+# Adding Static Folder
+!statik
+
