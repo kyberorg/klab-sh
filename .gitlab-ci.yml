@@ -1,0 +1,213 @@
+# Ref: https://blog.callr.tech/building-docker-images-with-gitlab-ci-best-practices/
+stages:
+  - docker_prepare
+  - build
+  - push
+  - prepare_deploy
+  - deploy
+  - cleanup
+
+variables:
+  projekt: "kyberorg/klab-site"
+  builderImage: "reg.klab.sh/base/go:1.21"
+  runnerImage: "reg.klab.sh/base/abi:edge"
+  envFile: deployInfo.env
+  deployShaFile: sha.txt
+  deployTagFile: tag.txt
+  deployEnvFile: env.txt
+  deployFlagFile: flag.txt
+  opsRepo: "sysop/klab-site-ops"
+  opsRepoId: 18
+# opsRepoToken - stored as masked var in GitLab
+
+workflow:
+  rules:
+    # No pipeline when there is a MR whose title starts with Draft
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TITLE =~ /^(\[Draft\]|\(Draft\)|Draft:)/
+      when: never
+    - when: always
+
+LoginToHarbor:
+  stage: docker_prepare
+  script:
+    - echo -n ${HARBOR_PASSWORD} | docker login -u ${HARBOR_USERNAME} --password-stdin ${HARBOR_HOST}
+
+Build:
+  stage: build
+  script:
+    # fetches the latest image (failing if image is not found)
+    - docker pull ${builderImage}
+    - docker pull ${runnerImage}
+    - >
+      docker build 
+      --label "org.opencontainers.image.title=${CI_PROJECT_TITLE}"
+      --label "org.opencontainers.image.url=${CI_PROJECT_URL}"
+      --label "org.opencontainers.image.created=${CI_JOB_STARTED_AT}"
+      --label "org.opencontainers.image.revision=${CI_COMMIT_SHA}"
+      --label "org.opencontainers.image.version=${CI_COMMIT_REF_NAME}"
+      --tag ${HARBOR_HOST}/${projekt}:edge
+      .
+
+PushImage:
+  stage: push
+  needs: ["Build", "LoginToHarbor"]
+  variables:
+    # We are just playing with Docker here.
+    # We do not need GitLab to clone the source code.
+    GIT_STRATEGY: none
+  script:
+    - docker push ${HARBOR_HOST}/${projekt}:edge > image_sha.txt
+    - echo "$(cat image_sha.txt | tail -n 1 | awk '{print $3}')" > ${deployShaFile}
+    - echo "edge" > ${deployTagFile}
+    - echo "dev" > ${deployEnvFile}
+  artifacts:
+    untracked: true
+
+PushRC:
+  stage: push
+  rules:
+    # Only merge request should be tagged "rc-123"
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  needs: ["Build"]
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - docker tag ${HARBOR_HOST}/${projekt}:edge ${HARBOR_HOST}/${projekt}:rc-${CI_MERGE_REQUEST_IID}
+    - docker push ${HARBOR_HOST}/${projekt}:rc-${CI_MERGE_REQUEST_IID}
+    - echo "rc-${CI_MERGE_REQUEST_IID}" > ${deployTagFile}
+    - echo "stage" > ${deployEnvFile}
+  artifacts:
+    untracked: true
+
+PushLatest:
+  stage: push
+  only:
+    # Only "trunk" should be tagged "latest"
+    - trunk
+  needs: ["Build"]
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - docker tag ${HARBOR_HOST}/${projekt}:edge ${HARBOR_HOST}/${projekt}:latest
+    - docker push ${HARBOR_HOST}/${projekt}:latest
+    - echo "latest" > ${deployTagFile}
+    - echo "prod" > ${deployEnvFile}
+  artifacts:
+    untracked: true
+
+# Finally, the goal here is to Docker tag any Git tag
+# GitLab will start a new pipeline everytime a Git tag is created, which is pretty awesome
+# Tag are normally for manual testing, so no autodeploy needs
+PushTag:
+  stage: push
+  only:
+    # We want this job to be run on tags only.
+    - tags
+  needs: ["Build"]
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - docker tag ${HARBOR_HOST}/${projekt}:edge ${HARBOR_HOST}/${projekt}:${CI_COMMIT_REF_NAME}
+    - docker push ${HARBOR_HOST}/${projekt}:${CI_COMMIT_REF_NAME}
+    - echo "${CI_COMMIT_REF_NAME}" > ${deployTagFile}
+    - echo "void" > ${deployEnvFile}
+  artifacts:
+    untracked: true
+
+# Reading files and store their content as var, otherwise exit without error.
+CheckDeployState:
+  stage: prepare_deploy
+  needs:
+    - job: PushImage
+      optional: false
+    - job: PushLatest
+      optional: true
+    - job: PushRC
+      optional: true
+    - job: PushTag
+      optional: true
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - deployTarget=$(cat ${deployEnvFile})
+    - echo ${deployTarget}
+    - if [[ ${deployTarget} != *"void"* ]]; then deployFlag=1; else deployFlag=0; fi
+    - echo "${deployFlag}" > ${deployFlagFile}
+  artifacts:
+    untracked: true
+
+ConvertDeployVars:
+  stage: prepare_deploy
+  needs: ["CheckDeployState"]
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - deploy_sha=$(cat ${deployShaFile})
+    - echo "deploySha=${deploy_sha}" >> ${envFile}
+    - deploy_tag=$(cat ${deployTagFile})
+    - echo "deployTag=${deploy_tag}" >> ${envFile}
+    - deploy_env=$(cat ${deployEnvFile})
+    - echo "deployEnv=${deploy_env}" >> ${envFile}
+    - deploy_flag=$(cat ${deployFlagFile})
+    - echo "deployFlag=${deploy_flag}" >> ${envFile}
+  artifacts:
+    reports:
+      dotenv: ${envFile}
+
+PrintDeployInfo:
+  stage: prepare_deploy
+  needs: ["CheckDeployState", "ConvertDeployVars"]
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - echo "Are we deploying ${deployFlag}?"
+    - echo "Image Tag ${deployTag}"
+    - echo "Image SHA ${deploySha}"
+    - echo "Deploy Target ${deployEnv}"
+
+DoDeploy:
+  stage: deploy
+  needs: ["CheckDeployState", "ConvertDeployVars"]
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - if [[ ${deployFlag} != *"1"* ]]; then exit 3; fi || true
+    - echo "Deploying stuff to K3s"
+    - valuesFile=values-${deployEnv}.yaml
+    # New Tag
+    - newTag=${deployTag}@${deploySha}
+    # Getting current version first
+    - curl ${CI_SERVER_URL}/${opsRepo}/-/raw/trunk/${valuesFile} -o ${valuesFile}
+    # Replacing tag
+    - |
+      sed -i "s/\( *tag: *\).*/\1\'$newTag\'/" ${valuesFile}
+    # Pushing commit to trunk
+    - opsBranch=trunk
+    - shortCommit=$(echo ${CI_COMMIT_SHA} | cut -c1-7)
+    - >
+      curl --request POST
+      --form "branch=${opsBranch}"
+      --form "start_branch=${opsBranch}" 
+      --form "commit_message=Deploying '${deployTag}' (${shortCommit}) from '${CI_COMMIT_REF_NAME}' to '${deployEnv}'"
+      --form "actions[][action]=update"
+      --form "actions[][file_path]=${valuesFile}"
+      --form "actions[][content]=<${valuesFile}"
+      --header "PRIVATE-TOKEN: ${opsRepoToken}"
+      --output response.txt -i
+      "${CI_API_V4_URL}/projects/${opsRepoId}/repository/commits" > response_code.txt
+    # Reading response and response code
+    - cat response.txt
+    - responseCode=$(cat response.txt | head -n 1 | awk '{print $2}')
+    # error if response code is not 201
+    - if [ "${responseCode}" != "201" ]; then exit 1; fi
+
+CleanupJob:
+  stage: cleanup
+  when: always
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - echo "Cleaning stuff up"
+    - docker rmi ${HARBOR_HOST}/${projekt}:${deployTag} || true
+    - docker rmi ${HARBOR_HOST}/${projekt}:edge || true
+
