@@ -75,7 +75,7 @@ PushRC:
     - docker tag ${HARBOR_HOST}/${projekt}:edge ${HARBOR_HOST}/${projekt}:rc-${CI_MERGE_REQUEST_IID}
     - docker push ${HARBOR_HOST}/${projekt}:rc-${CI_MERGE_REQUEST_IID}
     - echo "rc-${CI_MERGE_REQUEST_IID}" > ${deployTagFile}
-    - echo "stage" > ${deployEnvFile}
+    - echo "void" > ${deployEnvFile}
   artifacts:
     untracked: true
 
@@ -180,6 +180,9 @@ DoDeploy:
     - >
       curl --header "PRIVATE-TOKEN: ${opsRepoToken}" 
       "${CI_SERVER_URL}/${opsRepo}/-/raw/trunk/${valuesFile}" -o ${valuesFile}
+    # Verify that we received valid values.yaml
+    - |
+      cat ${valuesFile} | grep tag 
     # Replacing tag
     - |
       sed -i "s/\( *tag: *\).*/\1\'$newTag\'/" ${valuesFile}
