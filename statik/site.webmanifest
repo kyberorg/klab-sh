@@ -1,0 +1,19 @@
+{
+    "name": "KLab Site",
+    "short_name": "KLab.sh",
+    "icons": [
+        {
+            "src": "/android-chrome-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/android-chrome-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ],
+    "theme_color": "#00baff",
+    "background_color": "#00baff",
+    "display": "standalone"
+}

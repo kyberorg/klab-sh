@@ -1,0 +1,26 @@
+/* TEAM */
+
+Your title: Aleksandr Muravja
+
+Site: https://kyberorg.fi
+
+Twitter: @kyberorg
+
+Location: Tallinn, Estonia
+
+/* THANKS */
+
+Name: Golang Developers
+
+Name: JetBrains
+
+Name: ArgoCD
+
+/* SITE */
+
+Last update: 9/1/2024
+
+Standards: HTML5, CSS3, golang
+
+Components: Bootstrap 3
+
