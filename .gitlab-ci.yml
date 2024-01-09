@@ -16,7 +16,7 @@ variables:
   deployTagFile: tag.txt
   deployEnvFile: env.txt
   deployFlagFile: flag.txt
-  opsRepo: "sysop/klab-site-ops"
+  opsRepo: "klab/site-ops"
   opsRepoId: 18
 # opsRepoToken - stored as masked var in GitLab
 
