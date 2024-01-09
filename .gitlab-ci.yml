@@ -179,8 +179,6 @@ DoDeploy:
     # Getting current version first
     - >
       curl ${CI_SERVER_URL}/${opsRepo}/-/raw/trunk/${valuesFile} -o ${valuesFile}
-    - cat ${valuesFile}
-    - echo ${CI_SERVER_URL}
     # Verify that we received valid values.yaml
     - |
       cat ${valuesFile} | grep tag 
