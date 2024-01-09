@@ -178,8 +178,7 @@ DoDeploy:
     - newTag=${deployTag}@${deploySha}
     # Getting current version first
     - >
-      curl --header "PRIVATE-TOKEN: ${opsRepoToken}" 
-      "${CI_SERVER_URL}/${opsRepo}/-/raw/trunk/${valuesFile}" -o ${valuesFile}
+      curl ${CI_SERVER_URL}/${opsRepo}/-/raw/trunk/${valuesFile} -o ${valuesFile}
     # Verify that we received valid values.yaml
     - |
       cat ${valuesFile} | grep tag 
