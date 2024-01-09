@@ -177,7 +177,7 @@ DoDeploy:
     # New Tag
     - newTag=${deployTag}@${deploySha}
     # Getting current version first
-    - curl ${CI_SERVER_URL}/${opsRepo}/-/raw/trunk/${valuesFile} -o ${valuesFile}
+    - curl --header "PRIVATE-TOKEN: ${opsRepoToken}" ${CI_SERVER_URL}/${opsRepo}/-/raw/trunk/${valuesFile} -o ${valuesFile}
     # Replacing tag
     - |
       sed -i "s/\( *tag: *\).*/\1\'$newTag\'/" ${valuesFile}
