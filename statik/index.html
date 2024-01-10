@@ -19,6 +19,7 @@
 <body>
 
 <div id="content">
+    <!-- Header logo -->
     <div id="headers" class="container">
         <table class="header-table">
             <tr class="header-top-row center-cell">
@@ -33,29 +34,78 @@
                 </td>
             </tr>
         </table>
-
     </div>
-
+    <!-- Main Part -->
     <div id="main" class="container">
+        <!-- About KLab -->
         <h3>About</h3>
         <p>
-            Doing fun and challenging stuff on the Internet and DN42.<br>
+            KLab is IT infra for doing fun and challenging SysOp/NetOp and DevOps stuff on the Internet and DN42. <br>
+            I am operating <a href="https://as216311.klab.sh">AS216311</a> - A research/educational ASN used to learn more about the internet.
+            <br>
         </p>
+
+        <!-- KLab Paid Services -->
         <h3>My Services</h3>
-        <ul>
-            <li>IT Consulting and Outsourcing</li>
-            <li>Hardware assembly and recommendations</li>
-            <li>Hosting <span class="label label-default">planned</span></li>
-        </ul>
-        <h3>Free Services</h3>
+        <!-- IT outsourcing -->
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4>IT Consulting and Outsourcing</h4>
+            </div>
+            <div class="panel-body">
+                Get practical advice and support for your IT needs. <br>
+                I'm available for freelance and external work in DevOps/SysOp and Networks area.
+                <a href="mailto: asm@kmail.ee">Hire me!</a>
+            </div>
+        </div>
+
+        <!-- Anykey Service -->
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4>Home Computer services and recommendations</h4>
+            </div>
+            <div class="panel-body">
+                Have problems with your home computer? Need new computer or upgrade yours? I'm here to help. <br>
+                I can help with buying, assembling and installing Linux/Windows and other software. <br>
+                Need my help? <a href="mailto: asm@kmail.ee">Just write me.</a>
+            </div>
+        </div>
+
+        <!-- LIR Services -->
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4>LIR Services</h4>
+            </div>
+            <div class="panel-body">
+                Want to be part of Internet? Then you will need to get your address block and maybe autonomous system (AS). <br>
+                I can arrange it for you. <a href="mailto: asm@kmail.ee">Drop me a letter.</a>
+            </div>
+        </div>
+
+        <!-- Hosting -->
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4>Simple Hosting <span class="label label-default">planned</span></h4>
+            </div>
+            <div class="panel-body">
+                Need to have server in free Internet? <br>
+                I have server to share. I am also planning to provide BGP as part of hosting services. <br>
+                Sounds interesting? <a href="mailto: asm@kmail.ee">Let's speak!</a>
+            </div>
+        </div>
+
+        <!-- KLab Free Services -->
+        <h3>Goodwill/Free Services</h3>
         <ul>
             <li>Tier-1 Manjaro Linux <a href="https://manjaro.kyberorg.fi/">Mirror</a></li>
             <li>Tier-2 Arch Linux <a href="https://arch.kyberorg.fi/">Mirror</a></li>
-            <li>Public Docker/OCI Container <a href="https://reg.klab.sh/">Registry</a></li>
+            <li>Public Docker/OCI <a href="https://reg.klab.sh/">Container Registry</a></li>
             <li>Public <a href="https://kmail.ee/">E-Mail Server</a></li>
             <li>Maven Mirror <span class="label label-default">planned</span></li>
             <li>DN42 Autopeering Portal <span class="label label-default">planned</span></li>
         </ul>
+
+        <!-- Contact -->
         <h3>Get in touch</h3>
         <p>
             Feel free to contact me at <a href="mailto:asm@kmail.ee">asm@kmail.ee</a><br>
@@ -63,17 +113,22 @@
         </p>
     </div>
 </div>
+
+<!-- Footer -->
 <footer class="footer">
     <div class="container">
+        <!--suppress HtmlDeprecatedAttribute -->
         <div class="center-block" align="center">
             KLab 2024
             <ol class="breadcrumb">
                 <li><a href="/">Home</a></li>
                 <li><a href="humans.txt">Credits</a></li>
+                <li><a href="https://as216311.klab.sh">Network</a></li>
             </ol>
         </div>
     </div>
 </footer>
+<!-- Konfig: Dynamic title -->
 <script src="js/klab.js" defer></script>
 </body>
 </html>
