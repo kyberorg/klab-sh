@@ -171,7 +171,7 @@ DoDeploy:
   variables:
     GIT_STRATEGY: none
   script:
-    - if [[ ${deployFlag} != *"1"* ]]; then exit 3; fi || true
+    - if [[ ${deployFlag} != *"1"* ]]; then echo "Deploy not needed" && exit 0; fi
     - echo "Deploying stuff to K3s"
     - valuesFile=values-${deployEnv}.yaml
     # New Tag
@@ -179,7 +179,7 @@ DoDeploy:
     # Getting current version first
     - >
       curl ${CI_SERVER_URL}/${opsRepo}/-/raw/trunk/${valuesFile} -o ${valuesFile}
-    # Verify that we received valid values.yaml
+    # Verify that we received valid values yaml file with tag
     - |
       cat ${valuesFile} | grep tag 
     # Replacing tag
