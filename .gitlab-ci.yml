@@ -16,7 +16,7 @@ variables:
   deployTagFile: tag.txt
   deployEnvFile: env.txt
   deployFlagFile: flag.txt
-  opsRepo: "sysop/klab-site-ops"
+  opsRepo: "klab/site-ops"
   opsRepoId: 18
 # opsRepoToken - stored as masked var in GitLab
 
@@ -75,7 +75,7 @@ PushRC:
     - docker tag ${HARBOR_HOST}/${projekt}:edge ${HARBOR_HOST}/${projekt}:rc-${CI_MERGE_REQUEST_IID}
     - docker push ${HARBOR_HOST}/${projekt}:rc-${CI_MERGE_REQUEST_IID}
     - echo "rc-${CI_MERGE_REQUEST_IID}" > ${deployTagFile}
-    - echo "stage" > ${deployEnvFile}
+    - echo "void" > ${deployEnvFile}
   artifacts:
     untracked: true
 
@@ -171,13 +171,17 @@ DoDeploy:
   variables:
     GIT_STRATEGY: none
   script:
-    - if [[ ${deployFlag} != *"1"* ]]; then exit 3; fi || true
+    - if [[ ${deployFlag} != *"1"* ]]; then echo "Deploy not needed" && exit 0; fi
     - echo "Deploying stuff to K3s"
     - valuesFile=values-${deployEnv}.yaml
     # New Tag
     - newTag=${deployTag}@${deploySha}
     # Getting current version first
-    - curl ${CI_SERVER_URL}/${opsRepo}/-/raw/trunk/${valuesFile} -o ${valuesFile}
+    - >
+      curl ${CI_SERVER_URL}/${opsRepo}/-/raw/trunk/${valuesFile} -o ${valuesFile}
+    # Verify that we received valid values yaml file with tag
+    - |
+      cat ${valuesFile} | grep tag 
     # Replacing tag
     - |
       sed -i "s/\( *tag: *\).*/\1\'$newTag\'/" ${valuesFile}
