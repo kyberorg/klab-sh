@@ -23,7 +23,7 @@ a {
     color: mediumblue;
 }
 h3 {
-    color: #ffff7d;
+    color: white;
 }
 
 #content {
@@ -73,10 +73,13 @@ h3 {
     text-align: left; /* Adjust the alignment as needed */
 }
 
-#github-link {
-    color: aliceblue;
+.k {
+    color: white;
 }
 
+.lab {
+    color: #ffff7d;
+}
 #main {
     margin-top: 2em;
     max-width: 800px;
