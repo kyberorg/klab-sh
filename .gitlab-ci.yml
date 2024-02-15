@@ -75,7 +75,7 @@ PushRC:
     - docker tag ${HARBOR_HOST}/${projekt}:edge ${HARBOR_HOST}/${projekt}:rc-${CI_MERGE_REQUEST_IID}
     - docker push ${HARBOR_HOST}/${projekt}:rc-${CI_MERGE_REQUEST_IID}
     - echo "rc-${CI_MERGE_REQUEST_IID}" > ${deployTagFile}
-    - echo "void" > ${deployEnvFile}
+    - echo "stage" > ${deployEnvFile}
   artifacts:
     untracked: true
 
