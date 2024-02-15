@@ -91,7 +91,7 @@ PushLatest:
     - docker tag ${HARBOR_HOST}/${projekt}:edge ${HARBOR_HOST}/${projekt}:latest
     - docker push ${HARBOR_HOST}/${projekt}:latest
     - echo "latest" > ${deployTagFile}
-    - echo "prod" > ${deployEnvFile}
+    - echo "live" > ${deployEnvFile}
   artifacts:
     untracked: true
 
