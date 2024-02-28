@@ -1,4 +1,4 @@
-FROM reg.klab.sh/base/go:1.21.6 as builder
+FROM reg.klab.sh/base/go:1.22.0 as builder
 WORKDIR /go/src/app
 COPY . .
 RUN go fmt && CGO_ENABLED=0 go build .
